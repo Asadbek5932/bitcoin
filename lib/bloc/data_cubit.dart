@@ -1,50 +1,95 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:hive/hive.dart';
+import 'dart:convert';
 import 'data.dart';
 
 class DataCubit extends Cubit<Data> {
   Timer? _timer1;
   Timer? _timer2;
   Timer? _timer3;
+  final Box _dataBox = Hive.box('dataBox');
+  final Data _initialData;
+  late final int differenceInSeconds;
 
-  DataCubit()
-      : super(Data(
-          firstIsActive: false,
-          secondIsActive: false,
-          thirdIsActive: false,
-          increment1: 1,
-          increment2: 10,
-          increment3: 1000,
-          moneyThatWeHave: 0,
-          level: 1,
-          limitForLevel: 5,
-          levelGoing: 0,
-          priceFor1: 10,
-          priceFor2: 40,
-          priceFor3: 1000,
-          numberOfTaps2: 0,
-          numberOfTaps1: 0,
-          numberOfTaps3: 0,
-        ));
+  DataCubit(this._initialData) : super(_initialData) {
+    _calculateDifferenceInSeconds();
+    if (_initialData.firstIsActive) {
+      startTimer(1);
+    }
+    if (_initialData.secondIsActive) {
+      startTimer(2);
+    }
+    if (_initialData.thirdIsActive) {
+      startTimer(3);
+    }
+  }
+
+  var newValue;
+
+  void _calculateDifferenceInSeconds() {
+    DateTime now = DateTime.now();
+    differenceInSeconds = now
+        .difference(_initialData.dateTime)
+        .inSeconds;
+    // print(differenceInSeconds);
+    newValue = (((state.firstIsActive ? state.increment1 : 0) +
+        (state.secondIsActive ? state.increment2 : 0) +
+        (state.thirdIsActive ? state.increment3 : 0)) *
+        differenceInSeconds).toDouble();
+
+
+
+    emit(state.copyWith(
+        moneyThatWeHave: state.moneyThatWeHave + newValue,
+        levelGoing: state.levelGoing + newValue));
+  }
+
+  double calculatedDifferenceInSeconds() {
+    var value = DateTime
+        .now()
+        .difference(state.dateTime)
+        .inSeconds;
+
+    newValue = (((state.firstIsActive ? state.increment1 : 0) +
+        (state.secondIsActive ? state.increment2 : 0) +
+        (state.thirdIsActive ? state.increment3 : 0)) *
+        value).toDouble();
+
+    emit(state.copyWith(
+        moneyThatWeHave: state.moneyThatWeHave + newValue,
+        levelGoing: state.levelGoing + newValue));
+
+    return newValue;
+  }
 
   void incrementValueOfIncrement(int id) {
     switch (id) {
       case 1:
-        emit(state.copyWith(increment1: state.increment1 * 1.15, firstIsActive: true));
+        emit(state.copyWith(
+            increment1:
+            state.firstIsActive ? state.increment1 + 1 : state.increment1,
+            firstIsActive: true));
         break;
       case 2:
-        emit(state.copyWith(increment2: state.increment2 * 1.25, secondIsActive: true));
+        emit(state.copyWith(
+            increment2:
+            state.secondIsActive ? state.increment2 + 5 : state.increment2,
+            secondIsActive: true));
         break;
       case 3:
-        emit(state.copyWith(increment3: state.increment3 * 1.25, thirdIsActive: true));
+        emit(state.copyWith(
+            increment3: state.thirdIsActive
+                ? state.increment3 + 1000
+                : state.increment3,
+            thirdIsActive: true));
         break;
     }
   }
 
   void activation(int id) {
-    switch(id) {
+    switch (id) {
       case 1:
         emit(state.copyWith(firstIsActive: true));
         break;
@@ -61,21 +106,21 @@ class DataCubit extends Cubit<Data> {
     switch (id) {
       case 1:
         emit(state.copyWith(
-          moneyThatWeHave: state.moneyThatWeHave + state.increment1,
-          levelGoing: state.levelGoing + state.increment1,
-        ));
+            moneyThatWeHave: state.moneyThatWeHave + state.increment1,
+            levelGoing: state.levelGoing + state.increment1,
+            dateTime: DateTime.now()));
         break;
       case 2:
         emit(state.copyWith(
-          moneyThatWeHave: state.moneyThatWeHave + state.increment2,
-          levelGoing: state.levelGoing + state.increment2,
-        ));
+            moneyThatWeHave: state.moneyThatWeHave + state.increment2,
+            levelGoing: state.levelGoing + state.increment2,
+            dateTime: DateTime.now()));
         break;
       case 3:
         emit(state.copyWith(
-          moneyThatWeHave: state.moneyThatWeHave + state.increment3,
-          levelGoing: state.levelGoing + state.increment3,
-        ));
+            moneyThatWeHave: state.moneyThatWeHave + state.increment3,
+            levelGoing: state.levelGoing + state.increment3,
+            dateTime: DateTime.now()));
         break;
     }
   }
@@ -105,19 +150,19 @@ class DataCubit extends Cubit<Data> {
       case 1:
         emit(state.copyWith(
           moneyThatWeHave: state.moneyThatWeHave - state.priceFor1,
-          priceFor1: state.priceFor1 * 1.65,
+          priceFor1: state.priceFor1 * 1.1,
         ));
         break;
       case 2:
         emit(state.copyWith(
           moneyThatWeHave: state.moneyThatWeHave - state.priceFor2,
-          priceFor2: state.priceFor2 * 1.65,
+          priceFor2: state.priceFor2 * 1.2,
         ));
         break;
       case 3:
         emit(state.copyWith(
           moneyThatWeHave: state.moneyThatWeHave - state.priceFor3,
-          priceFor3: state.priceFor3 * 1.65,
+          priceFor3: state.priceFor3 * 1.4,
         ));
         break;
     }
@@ -164,39 +209,75 @@ class DataCubit extends Cubit<Data> {
   }
 
   void startTimer(int id) {
+
     if (id == 1 && (_timer1 == null || !_timer1!.isActive)) {
       _timer1 = Timer.periodic(const Duration(seconds: 1), (timer) {
+        saveDataToHive();
         incrementAutomaticaly(1);
       });
     } else if (id == 2 && (_timer2 == null || !_timer2!.isActive)) {
       _timer2 = Timer.periodic(const Duration(seconds: 1), (timer) {
+        saveDataToHive();
         incrementAutomaticaly(2);
       });
     } else if (id == 3 && (_timer3 == null || !_timer3!.isActive)) {
       _timer3 = Timer.periodic(const Duration(seconds: 1), (timer) {
+        saveDataToHive();
         incrementAutomaticaly(3);
       });
     }
   }
 
-  void stopTimer(int id) {
-    if (id == 1) {
-      _timer1?.cancel();
-      _timer1 = null;
-    } else if (id == 2) {
-      _timer2?.cancel();
-      _timer2 = null;
-    } else if (id == 3) {
-      _timer3?.cancel();
-      _timer3 = null;
+  void startTimers() {
+
+    if (state.firstIsActive && (_timer1 == null || !_timer1!.isActive)) {
+      _timer1 = Timer.periodic(const Duration(seconds: 1), (timer) {
+        saveDataToHive();
+        incrementAutomaticaly(1);
+      });
+    } else if (state.secondIsActive == 2 && (_timer2 == null || !_timer2!.isActive)) {
+      _timer2 = Timer.periodic(const Duration(seconds: 1), (timer) {
+        saveDataToHive();
+        incrementAutomaticaly(2);
+      });
+    } else if (state.thirdIsActive == 3 && (_timer3 == null || !_timer3!.isActive)) {
+      _timer3 = Timer.periodic(const Duration(seconds: 1), (timer) {
+        saveDataToHive();
+        incrementAutomaticaly(3);
+      });
+    }
+  }
+
+  void stopTimer() async {
+    await saveDataToHive();
+    _timer1?.cancel();
+    _timer1 = null;
+
+    _timer2?.cancel();
+    _timer2 = null;
+
+    _timer3?.cancel();
+    _timer3 = null;
+  }
+
+  Future<void> saveDataToHive() async {
+    final dataMap = state.toJson();
+    final jsonString = jsonEncode(dataMap);
+    await _dataBox.put('dataKey', jsonString);
+  }
+
+  Future<void> loadDataFromHive() async {
+    final jsonString = _dataBox.get('dataKey');
+    if (jsonString != null) {
+      final dataMap = jsonDecode(jsonString);
+      final data = Data.fromJson(dataMap);
+      emit(data);
     }
   }
 
   @override
-  Future<void> close() {
-    stopTimer(1);
-    stopTimer(2);
-    stopTimer(3);
+  Future<void> close() async {
+    await saveDataToHive();
     return super.close();
   }
 }

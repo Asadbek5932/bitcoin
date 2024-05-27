@@ -16,7 +16,7 @@ class Toolbar extends StatelessWidget {
     } else if (number >= 1e3) {
       return '${(number / 1e3).toStringAsFixed(2)}k';
     } else {
-      return number.toStringAsFixed(1);
+      return number.toStringAsFixed(2);
     }
   }
 
@@ -70,18 +70,27 @@ class Toolbar extends StatelessWidget {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  formatNumber(state.moneyThatWeHave),
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(fontSize: 40),
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.white,
+                      backgroundImage: AssetImage('assets/images/bitcoin.png'),
+                    ),
+                    const SizedBox(width: 5,),
+                    Text(
+                      formatNumber(state.moneyThatWeHave),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge!
+                          .copyWith(fontSize: 30, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
                 Text(
-                  formatNumber((state.firstIsActive ? state.increment1 : 0) +
-                      (state.secondIsActive ? state.increment2 : 0) +
-                      (state.secondIsActive ? state.increment3 : 0)),
+                  '${formatNumber((state.firstIsActive ? state.increment1 : 0) + (state.secondIsActive ? state.increment2 : 0) + (state.thirdIsActive ? state.increment3 : 0))}/sec',
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
                         color: Colors.pink,
                       ),

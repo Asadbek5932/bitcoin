@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class Data {
   final double moneyThatWeHave;
   final double increment1;
@@ -15,6 +17,7 @@ class Data {
   final bool firstIsActive;
   final bool secondIsActive;
   final bool thirdIsActive;
+  final DateTime dateTime;
 
   Data({
     required this.firstIsActive,
@@ -32,7 +35,59 @@ class Data {
     required this.priceFor3,
     required this.numberOfTaps2,
     required this.numberOfTaps3,
-    required this.numberOfTaps1});
+    required this.numberOfTaps1,
+    required this.dateTime,
+  });
+
+  Map<String, dynamic> toJson() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    final String formattedDateTime = formatter.format(dateTime);
+
+    return {
+      'moneyThatWeHave': moneyThatWeHave,
+      'increment1': increment1,
+      'increment2': increment2,
+      'increment3': increment3,
+      'level': level,
+      'limitForLevel': limitForLevel,
+      'levelGoing': levelGoing,
+      'priceFor1': priceFor1,
+      'priceFor2': priceFor2,
+      'priceFor3': priceFor3,
+      'numberOfTaps1': numberOfTaps1,
+      'numberOfTaps2': numberOfTaps2,
+      'numberOfTaps3': numberOfTaps3,
+      'firstIsActive': firstIsActive,
+      'secondIsActive': secondIsActive,
+      'thirdIsActive': thirdIsActive,
+      'dateTime': formattedDateTime,
+    };
+  }
+
+  factory Data.fromJson(Map<String, dynamic> json) {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    final DateTime dateTime = formatter.parse(json['dateTime']);
+
+    return Data(
+      moneyThatWeHave: json['moneyThatWeHave'],
+      increment1: json['increment1'],
+      increment2: json['increment2'],
+      increment3: json['increment3'],
+      level: json['level'],
+      limitForLevel: json['limitForLevel'],
+      levelGoing: json['levelGoing'],
+      priceFor1: json['priceFor1'],
+      priceFor2: json['priceFor2'],
+      priceFor3: json['priceFor3'],
+      numberOfTaps1: json['numberOfTaps1'],
+      numberOfTaps2: json['numberOfTaps2'],
+      numberOfTaps3: json['numberOfTaps3'],
+      firstIsActive: json['firstIsActive'],
+      secondIsActive: json['secondIsActive'],
+      thirdIsActive: json['thirdIsActive'],
+      dateTime: dateTime,
+    );
+  }
 
   Data copyWith({
     double? moneyThatWeHave,
@@ -50,12 +105,13 @@ class Data {
     double? priceFor3,
     bool? firstIsActive,
     bool? secondIsActive,
-    bool? thirdIsActive
+    bool? thirdIsActive,
+    DateTime? dateTime
   }) {
     return Data(
       firstIsActive: firstIsActive ?? this.firstIsActive,
-      secondIsActive: secondIsActive ?? this.firstIsActive,
-      thirdIsActive: secondIsActive ?? this.thirdIsActive,
+      secondIsActive: secondIsActive ?? this.secondIsActive,
+      thirdIsActive: thirdIsActive ?? this.thirdIsActive,
       increment2: increment2 ?? this.increment2,
       increment3: increment3 ?? this.increment3,
       numberOfTaps1: numberOfTaps1 ?? this.numberOfTaps1,
@@ -69,6 +125,7 @@ class Data {
       priceFor1: priceFor1 ?? this.priceFor1,
       priceFor2: priceFor2 ?? this.priceFor2,
       priceFor3: priceFor3 ?? this.priceFor3,
+      dateTime: dateTime ?? this.dateTime,
     );
   }
 }

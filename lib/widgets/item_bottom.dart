@@ -36,9 +36,11 @@ class ItemBottom extends StatelessWidget {
   Widget build(BuildContext context) {
     bool checker = context.watch<DataCubit>().checkAvailability(id);
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        const SizedBox(height: 2,),
         icon,
-        Expanded(
+        Flexible(
           child: BlocBuilder<DataCubit, Data>(builder: (context, state) {
             switch (id) {
               case 1:
@@ -66,11 +68,11 @@ class ItemBottom extends StatelessWidget {
                       .copyWith(fontSize: height / 9),
                 );
               default:
-                return Text('comming soon');
+                return const Text('comming soon');
             }
           }),
         ),
-        Expanded(
+        Flexible(
           child: BlocBuilder<DataCubit, Data>(builder: (context, state) {
             switch (id) {
               case 1:
@@ -105,9 +107,6 @@ class ItemBottom extends StatelessWidget {
             }
           }),
         ),
-        SizedBox(
-          height: height / 10,
-        ),
         GestureDetector(
           onTap: () {
             if (checker) {
@@ -121,28 +120,44 @@ class ItemBottom extends StatelessWidget {
             var currentPrice = context.read<DataCubit>().getPrice(id);
 
             return Container(
-              height: height / 4,
+              height: height / 3.5,
               width: width,
               color: checker ? Colors.white10 : Colors.white60,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 1,),
                   Expanded(
-                    child: Text(
-                      formatNumber(currentPrice),
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge!
-                          .copyWith(color: Colors.white, fontSize: height / 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const CircleAvatar(
+                          radius: 8,
+                          backgroundColor: Colors.white,
+                          backgroundImage:
+                              AssetImage('assets/images/bitcoin.png'),
+                        ),
+                        const SizedBox(width: 5,),
+                        Text(
+                          formatNumber(currentPrice),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge!
+                              .copyWith(
+                                  color: Colors.white, fontSize: height / 10),
+                        ),
+                      ],
                     ),
                   ),
-                  Expanded(
+                  Flexible(
                     child: Text(
                       '+1 /sec',
                       style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             color: Colors.green,
-                            fontSize: height / 10,
+                            fontSize: height / 12,
                           ),
                     ),
                   ),
